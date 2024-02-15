@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using static metaExchangeTask.Program;
-using System.Linq;
 namespace metaExchangeTask
 {
     internal class Program
@@ -10,15 +8,21 @@ namespace metaExchangeTask
             Console.WriteLine("Please enter the file path:");
             string filePath = Console.ReadLine();
 
-            //Console.WriteLine("Please enter Order Type");
-            //String orderType = Console.ReadLine();
+            Console.WriteLine("Please enter Order Type");
+            String orderType = Console.ReadLine();
 
-            //Console.WriteLine("Please enter Order Amount");
-            //double amount = Convert.ToDouble(Console.ReadLine());
+            Console.WriteLine("Please enter Order Amount");
+            double amount = Convert.ToDouble(Console.ReadLine());
 
+            List<Balance> balances = new List<Balance>();
+            Console.WriteLine("Please enter BTC balance");
+            decimal btcbalance = decimal.Parse(Console.ReadLine());
+
+            Console.WriteLine("Please enter Euro balance");
+            decimal eurobalance = decimal.Parse(Console.ReadLine());
+            balances.Add(new Balance { BTCbalance = btcbalance, EURObalance = eurobalance });
 
             List<OrderBook> Orderbooks = DeserializedJsonData(filePath);
-            //List<Order> orders = GenerateOrder(Orderbooks, OrderType.Buy);
 
         }
 
@@ -67,28 +71,14 @@ namespace metaExchangeTask
             }
 
             return orderbooks;
+        }      
+
+        public class Balance
+        {
+            public decimal BTCbalance { get; set; }
+            public decimal EURObalance { get; set; }
+
         }
-
-
-
-        //public static List<Order> GenerateOrder(List<OrderBook> orderbooks, OrderType ordertype) // balance)
-        //{
-        //    List<Order> orders = new List<Order>();
-           
-        //    foreach (OrderBook orderbook in orderbooks)
-        //    {
-        //        //var sortedBooks = orderbooks.OrderBy(b => b.Bids.Any() && ordertype == OrderType.Buy ? b.Bids.Min(o => o.Order.Price) :
-        //        //                          b.Asks.Min(o => o.Order.Price)).ToList();
-
-
-        //        var sortedBooks = orderbooks.OrderBy(book => ordertype == OrderType.Buy ? book.Bids.Min(o => o.Order.Price) :
-        //                              book.Asks.Min(o => o.Order.Price)).ToList();
-
-
-        //    }
-
-        //    return orders;
-        //}
 
         public class Ask
         {
@@ -105,8 +95,8 @@ namespace metaExchangeTask
             public DateTime Time { get; set; }
             public string Type { get; set; }
             public string Kind { get; set; }
-            public double Amount { get; set; }
-            public double Price { get; set; }
+            public decimal Amount { get; set; }
+            public decimal Price { get; set; }
         }
         public class OrderBook
         {
@@ -114,7 +104,6 @@ namespace metaExchangeTask
             public String AcqTime { get; set; }
             public List<Bid> Bids { get; set; }
             public List<Ask> Asks { get; set; }
-
 
         }
 
