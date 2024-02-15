@@ -12,7 +12,7 @@ namespace metaExchangeTask
             String orderType = Console.ReadLine();
 
             Console.WriteLine("Please enter Order Amount");
-            double amount = Convert.ToDouble(Console.ReadLine());
+            decimal amount = decimal.Parse(Console.ReadLine());
 
             List<Balance> balances = new List<Balance>();
             Console.WriteLine("Please enter BTC balance");
