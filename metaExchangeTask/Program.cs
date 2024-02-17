@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 namespace metaExchangeTask
 {
-    internal class Program
+    public class Program : IMetaExchange
     {
         static void Main(string[] args)
         {
@@ -9,7 +9,7 @@ namespace metaExchangeTask
 
             // Get file path from the user
             string filePath = GetFilePathFromUser();
-            List<OrderBook> orderBooks = DeserializeJsonData(filePath);
+            List<OrderBook> orderBooks = ((IMetaExchange)new Program()).DeserializeJsonData(filePath);
 
             if (orderBooks.Count == 0)
             {
@@ -23,7 +23,7 @@ namespace metaExchangeTask
             Balance balance = GetBalanceFromUser();
 
             // Get matched orders
-            List<Order> matchedOrders = GetMatchedOrders(orderBooks, orderType, amount, balance);
+            List<Order> matchedOrders = ((IMetaExchange)new Program()).GetMatchedOrders(orderBooks, orderType, amount, balance);
             string matchedOrdersJson = JsonConvert.SerializeObject(matchedOrders);
             Console.WriteLine(matchedOrdersJson);
 
@@ -63,7 +63,7 @@ namespace metaExchangeTask
         }
 
         //reading order book from file deserialize json
-        public static List<OrderBook> DeserializeJsonData(string filePath)
+        public List<OrderBook> DeserializeJsonData(string filePath)
         {
             List<OrderBook> orderBooks = new List<OrderBook>();
 
@@ -116,11 +116,11 @@ namespace metaExchangeTask
             return orderBooks;
         }
 
-        public static List<Order> GetMatchedOrders(List<OrderBook> orderBooks, OrderType orderType, decimal amount, Balance balances)
+        public List<Order> GetMatchedOrders(List<OrderBook> orderBooks, OrderType orderType, decimal amount, Balance balances)
         {
             List<Order> matchedOrders = new List<Order>();
-            decimal btcbalance = balances.BTCbalance;
-            decimal eurobalance = balances.EURObalance;
+            decimal btcBalance = balances.BTCbalance;
+            decimal euroBalance = balances.EURObalance;
 
             if (orderType == OrderType.Buy)
             {
@@ -130,20 +130,20 @@ namespace metaExchangeTask
                 foreach (var ask in matchedAsks)
                 {
                     // Check if there are sufficient balances and amount to execute the trade
-                    if (btcbalance > 0 && eurobalance > 0 && amount > 0)
+                    if (btcBalance > 0 && euroBalance > 0 && amount > 0)
                     {
                         // Calculate the total cost of buying 'amount' BTC at the ask price
                         decimal totalCost = amount * ask.Order.Price;
 
                         // Check if the total cost is within the available EUR balance
-                        if (totalCost <= eurobalance)
+                        if (totalCost <= euroBalance)
                         {
                             // Check if the amount to buy is less than or equal to the ask amount
                             if (amount <= ask.Order.Amount)
                             {
                                 // Update balances and amount
-                                eurobalance -= totalCost;
-                                btcbalance += amount;
+                                euroBalance -= totalCost;
+                                btcBalance += amount;
                                 amount = 0; // All requested BTC has been bought
                                 matchedOrders.Add(new Order
                                 {
@@ -159,8 +159,8 @@ namespace metaExchangeTask
                             else
                             {
                                 // Update balances and amount
-                                eurobalance -= ask.Order.Amount * ask.Order.Price;
-                                btcbalance += ask.Order.Amount;
+                                euroBalance -= ask.Order.Amount * ask.Order.Price;
+                                btcBalance += ask.Order.Amount;
                                 amount -= ask.Order.Amount;
                                 matchedOrders.Add(new Order
                                 {
@@ -195,7 +195,7 @@ namespace metaExchangeTask
                 foreach (var bid in matchedBids)
                 {
                     // Check if there are sufficient balances and amount to execute the trade
-                    if (btcbalance > 0 && eurobalance > 0 && amount > 0)
+                    if (btcBalance > 0 && euroBalance > 0 && amount > 0)
                     {
                         // Calculate the total proceeds of selling 'amount' BTC at the bid price
                         decimal totalProceeds = amount * bid.Order.Price;
@@ -204,8 +204,8 @@ namespace metaExchangeTask
                         if (amount <= bid.Order.Amount)
                         {
                             // Update balances and amount
-                            eurobalance += totalProceeds;
-                            btcbalance -= amount;
+                            euroBalance += totalProceeds;
+                            btcBalance -= amount;
                             amount = 0; // All requested BTC has been sold
                             matchedOrders.Add(new Order
                             {
@@ -220,8 +220,8 @@ namespace metaExchangeTask
                         else
                         {
                             // Update balances and amount
-                            eurobalance += bid.Order.Amount * bid.Order.Price;
-                            btcbalance -= bid.Order.Amount;
+                            euroBalance += bid.Order.Amount * bid.Order.Price;
+                            btcBalance -= bid.Order.Amount;
                             amount -= bid.Order.Amount;
                             matchedOrders.Add(new Order
                             {
@@ -243,6 +243,12 @@ namespace metaExchangeTask
             }
 
             return matchedOrders;
+        }
+
+        public enum OrderType
+        {
+            Buy,
+            Sell
         }
 
         public class OrderBook
@@ -279,12 +285,6 @@ namespace metaExchangeTask
             public decimal BTCbalance { get; set; }
             public decimal EURObalance { get; set; }
 
-        }
-
-        public enum OrderType
-        {
-            Buy,
-            Sell
-        }
+        }        
     }
 }
